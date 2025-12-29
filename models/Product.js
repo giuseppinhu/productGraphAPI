@@ -3,6 +3,15 @@ const ProductSchema = require("../database/ProductSchema");
 const ProductModel = mongoose.model("Product", ProductSchema);
 
 class Product {
+  async findAll() {
+    try {
+      const products = await ProductModel.find();
+      return products;
+    } catch (error) {
+      throw new Error("Error retrieving products: " + error.message);
+    }
+  }
+
   async create(data) {
     try {
       const { name, price, description, quantity } = data;
@@ -32,6 +41,31 @@ class Product {
       }
     } catch (error) {
       throw new Error("Error deleting product: " + error.message);
+    }
+  }
+
+  async updateQuantity(id, quantity) {
+    try {
+      const product = await ProductModel.findById(id);
+
+      if (!product) {
+        return { success: false, message: "Product not found" };
+      }
+
+      if (product.quantity < quantity) {
+        return { success: false, message: "Insufficient product quantity" };
+      }
+
+      const updatedProduct = await ProductModel.findByIdAndUpdate(
+        id,
+        { $inc: { quantity: -quantity } },
+        { new: true }
+      );
+
+      return true;
+    } catch (error) {
+      throw new Error("Error updating product quantity: " + error.message);
+      return false;
     }
   }
 }
