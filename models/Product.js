@@ -62,7 +62,7 @@ class Product {
         { new: true }
       );
 
-      return true;
+      return { success: true };
     } catch (error) {
       throw new Error("Error updating product quantity: " + error.message);
       return false;

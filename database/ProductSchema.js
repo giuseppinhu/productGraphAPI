@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema({
   name: String,
-  price: Number,
+  price: mongoose.Schema.Types.Decimal128,
   description: String,
   createdAt: {
     type: Date,
