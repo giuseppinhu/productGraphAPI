@@ -6,7 +6,7 @@ const Product = require("./Product");
 
 class Sales {
   async create(data) {
-    try {
+    try {     
       const newSale = new SalesModel(data);
       await newSale.save();
 

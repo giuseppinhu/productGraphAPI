@@ -56,7 +56,7 @@ class Product {
         return { success: false, message: "Insufficient product quantity" };
       }
 
-      const updatedProduct = await ProductModel.findByIdAndUpdate(
+      await ProductModel.findByIdAndUpdate(
         id,
         { $inc: { quantity: -quantity } },
         { new: true }
