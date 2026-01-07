@@ -68,6 +68,26 @@ class Product {
       return false;
     }
   }
+
+  async findById(id) {
+    try {
+      const product = await ProductModel.findById(id)
+      return product
+    } catch (error) {
+       throw new Error("Error retrieving product: " + error.message);
+    }
+  }
+
+  async findLatest(data){
+    let products = {}
+
+    data.forEach(async item =>  {
+      const product = await this.findById(String(item.productId))
+      console.log(product)
+    })
+
+    return products
+  }
 }
 
 module.exports = new Product();

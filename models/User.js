@@ -1,6 +1,9 @@
 const mongoose = require("mongoose");
 const UserSchema = require("../database/UserSchema");
+const getDate = require("../utils/getDate");
 const UserModel = mongoose.model("User", UserSchema);
+
+const calculateGrowthPercentage = require("../utils/calculateGrowthPercentage");
 
 class User {
   async create(data) {
@@ -26,6 +29,44 @@ class User {
     try {
       const users = await UserModel.find();
       return users;
+    } catch (error) {
+      throw new Error("Error retrieving users: " + error.message);
+    }
+  }
+  
+  async getNewUsers() {
+    try {      
+      const { startMonth, endMonth, startMonthPrev, endMonthPrev } = getDate
+
+      const users = await UserModel.aggregate([
+        {
+          $match: {
+            created_at: {
+              $gte: startMonthPrev,
+              $lt: endMonth
+            }
+          }
+        },
+        {
+          $facet: {
+            current: [
+              { $match: { created_at: { $gte: startMonth, $lt: endMonth } } },
+              { $group: { _id: null, count: { $sum: 1 } } }
+            ],
+            previous: [
+              { $match: { created_at: { $gte: startMonthPrev, $lt: endMonthPrev } } },
+              { $group: { _id: null, count: { $sum: 1 } } }
+            ]
+          }
+        }
+      ]);
+
+      const currentCount = users[0].current[0]?.count || 0;
+      const previousCount = users[0].previous[0]?.count || 0;
+
+      const percentage = calculateGrowthPercentage(previousCount, currentCount)
+
+      return { currentCount, previousCount, percentage, isPositive: currentCount >= previousCount }
     } catch (error) {
       throw new Error("Error retrieving users: " + error.message);
     }

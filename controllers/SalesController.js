@@ -10,6 +10,15 @@ class SalesController {
       res.status(500).json({ message: "Error creating sale", error });
     }
   }
+
+  async getSales(req, res) {
+    try {
+      const sales = await Sales.getAll();
+      res.status(200).json(sales)
+    } catch (error) {
+      res.status(500).json({ message: "Error retrieving sales", error });
+    }
+  }
 }
 
 module.exports = new SalesController();
