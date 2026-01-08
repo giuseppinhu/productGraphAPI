@@ -71,7 +71,7 @@ class Product {
 
   async findById(id) {
     try {
-      const product = await ProductModel.findById(id)
+      const product = await ProductModel.findById(id).select("name price createdAt")
       return product
     } catch (error) {
        throw new Error("Error retrieving product: " + error.message);
@@ -79,14 +79,17 @@ class Product {
   }
 
   async findLatest(data){
-    let products = {}
+    try {
+      const products = await Promise.all(
+        data.map(async (item) => {
+          return await this.findById(String(item.productId));
+        })
+      );
 
-    data.forEach(async item =>  {
-      const product = await this.findById(String(item.productId))
-      console.log(product)
-    })
-
-    return products
+      return products.filter(Boolean);
+    } catch (error) {
+      throw new Error("Error retrieving latest products: " + error.message);
+    }
   }
 }
 

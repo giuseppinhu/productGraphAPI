@@ -83,6 +83,19 @@ class User {
       throw new Error("Error finding user by email: " + error.message);
     }
   }
+
+  async findById(id) {
+     try {
+      const user = await UserModel.findById(id).select({_id: 0, name: 1, email: 1});
+
+      if (user != undefined) {
+        return { sucess: true, user };
+      }
+      return { sucess: false };
+    } catch (error) {
+      throw new Error("Error finding user by email: " + error.message);
+    }
+  }
 }
 
 module.exports = new User();

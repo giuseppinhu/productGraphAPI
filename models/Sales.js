@@ -40,9 +40,9 @@ class Sales {
     try {
       const sales = await SalesModel
                         .find()
-                        .select("productId quantity")
+                        .select("productId totalPrice saleDate clientId status")
                         .sort({ _id: -1 })
-                        .limit(3)
+                        .limit(5)
       return sales
     } catch(error) {
       throw new Error("Error getting sales: " + error.message);
@@ -110,6 +110,19 @@ class Sales {
       throw new Error("Error getting data sales: " + error.message);
     }
   }
+
+  async getProductMoreSale() {
+    const sales = await SalesModel.aggregate([
+      {
+        $group: {
+          _id: "$productId",
+          totalQuantity: { $sum: "$quantity" },
+          totalSales: { $sum: "$totalPrice" }
+        }
+      },
+    ])
+    return sales
+  } 
 }
 
 module.exports = new Sales();

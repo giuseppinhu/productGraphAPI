@@ -80,6 +80,16 @@ class UserConstroller {
     }
   }
 
+  async getUserById(req, res) {
+    try {
+      const { id } = req.body
+      const user = await User.findById(id);
+      res.status(200).json({ user });
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+
   async loginUser(req, res) {
     const { email, password } = req.body;
 
