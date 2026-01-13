@@ -49,6 +49,72 @@ class Sales {
     }
   }
   
+  async getProductMoreSale() {
+   try {
+      const sales = await SalesModel.aggregate([
+        {
+          $group: {
+            _id: "$productId",
+            totalQuantity: { $sum: "$quantity" },
+            totalSales: { $sum: "$totalPrice" }
+          }
+        },
+        {
+          $sort: { totalQuantity: -1 }
+        },
+        {
+          $limit: 4
+        }
+      ])
+
+    if(sales === undefined || sales === null) {
+      return {}
+    }
+    
+    return sales
+   } catch (error) {
+    throw new Error("Error getting sales: " + error.message);
+   }
+  } 
+
+  async getProductMonth() {
+    try {
+      const sales = await SalesModel.aggregate([
+        {
+          $group: {
+            _id: { $month: "$saleDate" },
+            quantity: { $sum: "$quantity" },
+            totalSales: { $sum: { $toDouble: "$totalPrice" }}
+          }
+        },
+        {
+          $sort: { "_id": 1 }
+        },
+        {
+          $project: {
+            _id: 0,
+            month: {
+              $arrayElemAt: [
+                [
+                  "jan", "fev", "mar", "abr", "mai", "jun",
+                  "jul", "ago", "set", "out", "nov", "dez"
+                ],
+                { $subtract: ["$_id", 1] }
+              ]
+            },
+            quantity: 1,
+            sales: "$totalSales"
+          }
+        }  
+      ])
+
+
+      return sales
+    } catch (error) {
+      throw new Error("Error getting sales: " + error.message)
+    }
+  }
+
   async dataSales() {
     try {
       const { startMonth, endMonth, startMonthPrev, endMonthPrev } = getDate
@@ -110,19 +176,6 @@ class Sales {
       throw new Error("Error getting data sales: " + error.message);
     }
   }
-
-  async getProductMoreSale() {
-    const sales = await SalesModel.aggregate([
-      {
-        $group: {
-          _id: "$productId",
-          totalQuantity: { $sum: "$quantity" },
-          totalSales: { $sum: "$totalPrice" }
-        }
-      },
-    ])
-    return sales
-  } 
 }
 
 module.exports = new Sales();

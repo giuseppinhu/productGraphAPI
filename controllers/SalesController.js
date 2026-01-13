@@ -13,7 +13,7 @@ class SalesController {
 
   async getSales(req, res) {
     try {
-      const sales = await Sales.getProductMoreSale();
+      const sales = await Sales.getAll();
       res.status(200).json(sales)
     } catch (error) {
       res.status(500).json({ message: "Error retrieving sales", error });
