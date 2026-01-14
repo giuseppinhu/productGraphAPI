@@ -1,110 +1,116 @@
 const Sales = require("../models/Sales");
 const User = require("../models/User");
-const Product = require('../models/Product')
+const Product = require("../models/Product");
 
 class DataController {
-    async dataDashboard(req, res) {
-        try {
-            const users = await User.getNewUsers()
-            const sales = await Sales.dataSales()
-            
-            const getDataProduct = async () => {
-                const rawMoreSales = await Sales.getProductMoreSale()   
-                 
-                const newMoreSales = await Promise.all(
-                    rawMoreSales.map(async i => {
-                        const product = await Product.findById(i._id)
-                        
-                        if(product != null) {
-                            const newObj = {
-                                totalQuantity: i.totalQuantity,
-                                totalSales: i.totalSales,
-                                name: product.name,
-                                date: i.lastSaleDate
-                            }  
-                            
-                            return newObj
-                        } else {
-                            return {}
-                        }
-                    })
-                )
+  async dataDashboard(req, res) {
+    try {
+      const users = await User.getNewUsers();
+      const sales = await Sales.dataSales();
 
-                return newMoreSales
+      const getDataProduct = async () => {
+        const rawMoreSales = await Sales.getProductMoreSale();
+
+        const newMoreSales = await Promise.all(
+          rawMoreSales.map(async (i) => {
+            const product = await Product.findById(i._id);
+
+            if (product != null) {
+              const newObj = {
+                totalQuantity: i.totalQuantity,
+                totalSales: i.totalSales,
+                name: product.name,
+                date: i.lastSaleDate,
+              };
+
+              return newObj;
+            } else {
+              return {};
             }
+          })
+        );
 
-            const getDataSaleLast = async () => {
-                const rawSales = await Sales.getLatest()
-                
-                const newSales = await Promise.all(
-                    rawSales.map(async i => {
-                        const user = await User.findById(i.clientId)                 
+        return newMoreSales;
+      };
 
-                       if(user != undefined) {
-                            const newObj = {
-                                _id: i._id,
-                                totalPrice: i.totalPrice,
-                                status: i.status,
-                                saleDate: i.saleDate,
-                                name: user?.user.name || 'Name Test'
-                            }
-                            return newObj
-                       } else {
-                        return {}
-                       }
-                    })
+      const getDataSaleLast = async () => {
+        const rawSales = await Sales.getLatest();
 
-                )
+        const newSales = await Promise.all(
+          rawSales.map(async (i) => {
+            const user = await User.findById(i.clientId);
 
-                return newSales
+            if (user != undefined) {
+              const newObj = {
+                _id: i._id,
+                totalPrice: i.totalPrice,
+                status: i.status,
+                saleDate: i.saleDate,
+                name: user?.user.name || "Name Test",
+              };
+              return newObj;
+            } else {
+              return {};
             }
+          })
+        );
 
-            const productSales = await getDataProduct()
-            const salesLast = await getDataSaleLast()
+        return newSales;
+      };
 
-            const graphData = await Sales.getProductMonth()
+      const productSales = await getDataProduct();
+      const salesLast = await getDataSaleLast();
 
-            const data = {
-                users_new: users,
-                sales,
-                salesLast,
-                productSales,
-                graphData
-            }
+      const graphData = await Sales.getProductMonth();
 
-            res.status(200).json({ data })
-        } catch (error) {
-            res.status(500).json({ message: "Error retrieving data dashboard", error });
-        }
+      const data = {
+        users_new: users,
+        sales,
+        salesLast,
+        productSales,
+        graphData,
+      };
+
+      res.status(200).json({ data });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Error retrieving data dashboard", error });
     }
+  }
 
-    async dataSales(req, res) {
-        try {
-            const salesAll = await Sales.getAll()
+  async dataSales(req, res) {
+    try {
+      const salesAll = await Sales.getAll();
+      const newUsers = await User.getNewUsers();
 
-            const sales = await Promise.all(
-                salesAll.map(async i => {
-                    const product = await Product.findById(i.productId)
-                    const user = await User.findById(i.clientId)
+      const sales = await Promise.all(
+        salesAll.map(async (i) => {
+          const product = await Product.findById(i.productId);
+          const user = await User.findById(i.clientId);
 
-                    const newObj = {
-                        id: i._id,
-                        product: product.name,
-                        client: user.user.name,
-                        totalPrice: Number(i.totalPrice),
-                        saleDate: i.saleDate,
-                        status: i.status
-                    }
+          const newObj = {
+            id: i._id,
+            product: product.name,
+            client: user.user.name,
+            totalPrice: Number(i.totalPrice),
+            saleDate: i.saleDate,
+            status: i.status,
+          };
 
-                    return newObj
-                })
-            )
+          return newObj;
+        })
+      );
 
-            res.status(200).json({ sales })
-        } catch (error) {
-            res.status(500).json({message: "Error retrieving data sales", error});
-        }
+      const budges = await Sales.getSalesWeek();
+
+      const AUR = budges.quantity / newUsers.currentCount || 0;
+
+      res.status(200).json({ sales, budges, AUR });
+    } catch (error) {
+      res.status(500).json({ message: "Error retrieving data sales", error });
     }
+  }
 }
 
-module.exports = new DataController()
+module.exports = new DataController();

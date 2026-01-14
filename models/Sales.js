@@ -8,12 +8,12 @@ const calculateGrowthPercentage = require("../utils/calculateGrowthPercentage");
 
 class Sales {
   async create(data) {
-    try {     
-      const product = await Product.findById(data.productId) 
-      const priceReal = product.price * data.quantity
+    try {
+      const product = await Product.findById(data.productId);
+      const priceReal = product.price * data.quantity;
 
-      if(data.totalPrice != priceReal) {
-        return { success: false, message: "Total price is incorret!"}
+      if (data.totalPrice != priceReal) {
+        return { success: false, message: "Total price is incorret!" };
       }
 
       const newSale = new SalesModel(data);
@@ -28,13 +28,13 @@ class Sales {
       if (!result.success) {
         return { success: false, message: result.message };
       }
-      
+
       return { success: true, newSale };
     } catch (error) {
       throw new Error("Error creating sale: " + error.message);
     }
   }
-  
+
   async getAll() {
     try {
       const sales = await SalesModel.find();
@@ -43,47 +43,34 @@ class Sales {
       throw new Error("Error getting sales: " + error.message);
     }
   }
-  
-  async getLatest() {
-    try {
-      const sales = await SalesModel
-                        .find()
-                        .select("productId totalPrice saleDate clientId status")
-                        .sort({ _id: -1 })
-                        .limit(5)
-      return sales
-    } catch(error) {
-      throw new Error("Error getting sales: " + error.message);
-    }
-  }
-  
+
   async getProductMoreSale() {
-   try {
+    try {
       const sales = await SalesModel.aggregate([
         {
           $group: {
             _id: "$productId",
             totalQuantity: { $sum: "$quantity" },
-            totalSales: { $sum: "$totalPrice" }
-          }
+            totalSales: { $sum: "$totalPrice" },
+          },
         },
         {
-          $sort: { totalQuantity: -1 }
+          $sort: { totalQuantity: -1 },
         },
         {
-          $limit: 4
-        }
-      ])
+          $limit: 4,
+        },
+      ]);
 
-    if(sales === undefined || sales === null) {
-      return {}
+      if (sales === undefined || sales === null) {
+        return {};
+      }
+
+      return sales;
+    } catch (error) {
+      throw new Error("Error getting sales: " + error.message);
     }
-    
-    return sales
-   } catch (error) {
-    throw new Error("Error getting sales: " + error.message);
-   }
-  } 
+  }
 
   async getProductMonth() {
     try {
@@ -92,11 +79,11 @@ class Sales {
           $group: {
             _id: { $month: "$saleDate" },
             quantity: { $sum: "$quantity" },
-            totalSales: { $sum: { $toDouble: "$totalPrice" }}
-          }
+            totalSales: { $sum: { $toDouble: "$totalPrice" } },
+          },
         },
         {
-          $sort: { "_id": 1 }
+          $sort: { _id: 1 },
         },
         {
           $project: {
@@ -104,86 +91,152 @@ class Sales {
             month: {
               $arrayElemAt: [
                 [
-                  "jan", "fev", "mar", "abr", "mai", "jun",
-                  "jul", "ago", "set", "out", "nov", "dez"
+                  "jan",
+                  "fev",
+                  "mar",
+                  "abr",
+                  "mai",
+                  "jun",
+                  "jul",
+                  "ago",
+                  "set",
+                  "out",
+                  "nov",
+                  "dez",
                 ],
-                { $subtract: ["$_id", 1] }
-              ]
+                { $subtract: ["$_id", 1] },
+              ],
             },
             quantity: 1,
-            sales: "$totalSales"
-          }
-        }  
-      ])
+            sales: "$totalSales",
+          },
+        },
+      ]);
 
-
-      return sales
+      return sales;
     } catch (error) {
-      throw new Error("Error getting sales: " + error.message)
+      throw new Error("Error getting sales: " + error.message);
+    }
+  }
+
+  async getLatest() {
+    try {
+      const sales = await SalesModel.find()
+        .select("productId totalPrice saleDate clientId status")
+        .sort({ _id: -1 })
+        .limit(5);
+      return sales;
+    } catch (error) {
+      throw new Error("Error getting sales: " + error.message);
+    }
+  }
+
+  async getSalesWeek() {
+    try {
+      const { startWeek, endWeek } = getDate;
+
+      const sales = await SalesModel.aggregate([
+        {
+          $match: {
+            saleDate: { $gte: startWeek, $lt: endWeek },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: { $sum: { $toDouble: "$totalPrice" } },
+            quantity: { $sum: "$quantity" },
+          },
+        },
+      ]);
+
+      if (sales === undefined || sales.length === 0) {
+        return { totalRevenue: 0 };
+      }
+
+      sales[0].totalRevenue = Number(sales[0].totalRevenue.toFixed(2));
+
+      return {
+        totalRevenue: sales[0].totalRevenue,
+        quantity: sales[0].quantity,
+      };
+    } catch (error) {
+      throw new Error("Error getting sales week: " + error.message);
     }
   }
 
   async dataSales() {
     try {
-      const { startMonth, endMonth, startMonthPrev, endMonthPrev } = getDate
+      const { startMonth, endMonth, startMonthPrev, endMonthPrev } = getDate;
 
       const getStatsPeriod = async (start, end) => {
         const [result] = await SalesModel.aggregate([
-          { 
-            $match: { 
-              saleDate: { $gte: start, $lt: end } 
-            } 
+          {
+            $match: {
+              saleDate: { $gte: start, $lt: end },
+            },
           },
-          { 
-            $group: { 
-              _id: null, 
-              totalRevenue: { $sum: "$totalPrice" }, 
-              totalSales: { $sum: "$quantity" }, 
-            } 
-          }
+          {
+            $group: {
+              _id: null,
+              totalRevenue: { $sum: "$totalPrice" },
+              totalSales: { $sum: "$quantity" },
+            },
+          },
         ]);
 
         if (!result) {
           return { totalRevenue: 0, totalSales: 0 };
         }
 
-        const totalRevenue = result.totalRevenue && result.totalRevenue.toString
-          ? Number(result.totalRevenue.toString())
-          : Number(result.totalRevenue) || 0;
+        const totalRevenue =
+          result.totalRevenue && result.totalRevenue.toString
+            ? Number(result.totalRevenue.toString())
+            : Number(result.totalRevenue) || 0;
 
         const totalSales = Number(result.totalSales) || 0;
 
         return { totalRevenue, totalSales };
-      }
+      };
 
-      const calcTicket = ({ totalRevenue, totalSales }) => totalSales ? Number((totalRevenue / totalSales).toFixed(2)) : 0;
+      const calcTicket = ({ totalRevenue, totalSales }) =>
+        totalSales ? Number((totalRevenue / totalSales).toFixed(2)) : 0;
 
       const [current, previous] = await Promise.all([
         getStatsPeriod(startMonth, endMonth),
         getStatsPeriod(startMonthPrev, endMonthPrev),
       ]);
 
-     const metrics = {
+      const metrics = {
         revenueGrowth: {
-          percentage:  calculateGrowthPercentage(previous.totalRevenue,current.totalRevenue),
-          isPositive: current.totalRevenue >=previous.totalRevenue,
+          percentage: calculateGrowthPercentage(
+            previous.totalRevenue,
+            current.totalRevenue
+          ),
+          isPositive: current.totalRevenue >= previous.totalRevenue,
         },
         salesGrowth: {
-          percentage: calculateGrowthPercentage(previous.totalSales,current.totalSales),
+          percentage: calculateGrowthPercentage(
+            previous.totalSales,
+            current.totalSales
+          ),
           isPositive: current.totalSales >= previous.totalSales,
         },
         ticketGrowth: {
           value: calcTicket(current),
-          percentage: calculateGrowthPercentage(calcTicket(previous),calcTicket(current)),
+          percentage: calculateGrowthPercentage(
+            calcTicket(previous),
+            calcTicket(current)
+          ),
           isPositive: calcTicket(current) >= calcTicket(previous),
-        }
+        },
       };
 
-      if(current === undefined || current.length <= 0) {
-        return undefined
+      if (current === undefined || current.length <= 0) {
+        return undefined;
       }
 
-      return { current, metrics }
+      return { current, metrics };
     } catch (error) {
       throw new Error("Error getting data sales: " + error.message);
     }
