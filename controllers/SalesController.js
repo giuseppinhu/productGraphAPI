@@ -26,6 +26,23 @@ class SalesController {
       res.status(500).json({ message: "Error retrieving sales", error });
     }
   }
+
+  async deleteSale(req, res) {
+    try {
+      const { id } = req.body;
+
+      const result = await Sales.delete(id);
+
+      if (result.message) {
+        res.status(404).json({ message: result.message });
+        return;
+      }
+
+      res.status(200).json({ message: "Sale deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting sale", error });
+    }
+  }
 }
 
 module.exports = new SalesController();

@@ -35,6 +35,19 @@ class Sales {
     }
   }
 
+  async delete(id) {
+    try {
+      const result = await SalesModel.findByIdAndDelete(id);
+
+      if (result === undefined || result === null) {
+        return { message: "Sale not found!" };
+      }
+      return { result };
+    } catch (error) {
+      throw new Error("Error deleting sale: " + error.message);
+    }
+  }
+
   async getAll() {
     try {
       const sales = await SalesModel.find();

@@ -20,12 +20,14 @@ router.post("/product", AdminAuth, ProductController.createProduct);
 
 router.delete("/product", AdminAuth, ProductController.deleteProduct);
 
-router.post("/id/product/", ProductController.findById)
+router.post("/id/product/", ProductController.findById);
 
 // ROTAS DE VENDA
 router.post("/sale", UserLogged, SalesController.createSale);
 
-router.get("/sale", SalesController.getSales)
+router.get("/sale", SalesController.getSales);
+
+router.delete("/sale", SalesController.deleteSale);
 
 // ROTAS DE USUARIOS
 router.get("/users", AdminAuth, UserController.getAllUsers);
@@ -39,8 +41,8 @@ router.delete("/user", AdminAuth, UserController.deleteUser);
 router.post("/login", UserController.loginUser);
 
 // ROTA DA DADOS PARA A DASH
-router.get("/data/dashboard", DataController.dataDashboard)
+router.get("/data/dashboard", DataController.dataDashboard);
 
-router.get("/data/sales", DataController.dataSales)
+router.get("/data/sales", DataController.dataSales);
 
 module.exports = router;
