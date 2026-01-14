@@ -48,6 +48,7 @@ class UserConstroller {
 
         data.password = hash;
         const user = await User.create(data);
+        req.io.emit("dashboard:update");
         res.status(201).json({ message: "User created successfully", user });
       });
     } catch (error) {

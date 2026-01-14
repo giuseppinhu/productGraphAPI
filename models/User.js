@@ -61,6 +61,10 @@ class User {
         }
       ]);
 
+      if(users === undefined || users.length <= 0) {
+        return undefined
+      }
+
       const currentCount = users[0].current[0]?.count || 0;
       const previousCount = users[0].previous[0]?.count || 0;
 

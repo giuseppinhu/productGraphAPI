@@ -7,7 +7,7 @@ class DataController {
         try {
             const users = await User.getNewUsers()
             const sales = await Sales.dataSales()
-
+            
             const getDataProduct = async () => {
                 const rawMoreSales = await Sales.getProductMoreSale()   
                  
@@ -59,8 +59,6 @@ class DataController {
                 return newSales
             }
 
-            
-
             const productSales = await getDataProduct()
             const salesLast = await getDataSaleLast()
 
@@ -77,6 +75,34 @@ class DataController {
             res.status(200).json({ data })
         } catch (error) {
             res.status(500).json({ message: "Error retrieving data dashboard", error });
+        }
+    }
+
+    async dataSales(req, res) {
+        try {
+            const salesAll = await Sales.getAll()
+
+            const sales = await Promise.all(
+                salesAll.map(async i => {
+                    const product = await Product.findById(i.productId)
+                    const user = await User.findById(i.clientId)
+
+                    const newObj = {
+                        id: i._id,
+                        product: product.name,
+                        client: user.user.name,
+                        totalPrice: Number(i.totalPrice),
+                        saleDate: i.saleDate,
+                        status: i.status
+                    }
+
+                    return newObj
+                })
+            )
+
+            res.status(200).json({ sales })
+        } catch (error) {
+            res.status(500).json({message: "Error retrieving data sales", error});
         }
     }
 }

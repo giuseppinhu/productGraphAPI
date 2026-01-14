@@ -9,7 +9,15 @@ const calculateGrowthPercentage = require("../utils/calculateGrowthPercentage");
 class Sales {
   async create(data) {
     try {     
+      const product = await Product.findById(data.productId) 
+      const priceReal = product.price * data.quantity
+
+      if(data.totalPrice != priceReal) {
+        return { success: false, message: "Total price is incorret!"}
+      }
+
       const newSale = new SalesModel(data);
+
       await newSale.save();
 
       const result = await Product.updateQuantity(
@@ -20,8 +28,8 @@ class Sales {
       if (!result.success) {
         return { success: false, message: result.message };
       }
-
-      return newSale;
+      
+      return { success: true, newSale };
     } catch (error) {
       throw new Error("Error creating sale: " + error.message);
     }
@@ -170,6 +178,10 @@ class Sales {
           isPositive: calcTicket(current) >= calcTicket(previous),
         }
       };
+
+      if(current === undefined || current.length <= 0) {
+        return undefined
+      }
 
       return { current, metrics }
     } catch (error) {

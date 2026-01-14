@@ -5,7 +5,15 @@ class SalesController {
     try {
       const data = req.body;
       const sale = await Sales.create(data);
-      res.status(201).json(sale);
+       
+      req.io.emit("dashboard:update");
+
+      if(!sale.success) {
+        res.status(406).json(sale);
+      } else {
+        res.status(201).json(sale);
+      }
+
     } catch (error) {
       res.status(500).json({ message: "Error creating sale", error });
     }

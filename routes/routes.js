@@ -41,4 +41,6 @@ router.post("/login", UserController.loginUser);
 // ROTA DA DADOS PARA A DASH
 router.get("/data/dashboard", DataController.dataDashboard)
 
+router.get("/data/sales", DataController.dataSales)
+
 module.exports = router;
