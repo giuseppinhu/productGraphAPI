@@ -3,6 +3,7 @@ const SalesSchema = require("../database/SalesSchema");
 const SalesModel = mongoose.model("Sales", SalesSchema);
 
 const Product = require("./Product");
+const User = require("./User");
 const getDate = require("../utils/getDate");
 const calculateGrowthPercentage = require("../utils/calculateGrowthPercentage");
 
@@ -11,6 +12,11 @@ class Sales {
     try {
       const product = await Product.findById(data.productId);
       const priceReal = product.price * data.quantity;
+      const user = await User.findById(data.clientId)
+
+      if(!user.sucess) {
+        return { success: false, message: "User not found!" };
+      }
 
       if (data.totalPrice != priceReal) {
         return { success: false, message: "Total price is incorret!" };
@@ -48,10 +54,27 @@ class Sales {
     }
   }
 
-  async getAll() {
+  async getAll(page = 1, limit = 5) {
     try {
-      const sales = await SalesModel.find();
-      return sales;
+      const skip = (page - 1) * limit;
+
+      var next = false
+
+      const sales = await SalesModel
+                .find()
+                .limit(limit)
+                .skip(skip)
+                .sort({ _id: -1 });
+                
+      const countDoc = await SalesModel.countDocuments()
+
+      if (skip + limit < countDoc) {
+        next = true
+      }
+
+      const totalPages = Math.ceil(countDoc / limit);
+   
+      return { sales, totalPages, next };
     } catch (error) {
       throw new Error("Error getting sales: " + error.message);
     }
