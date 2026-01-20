@@ -33,13 +33,13 @@ class SalesController {
 
   async getSales(req, res) {
     try {
-      const { page } = req.query;
+      const { page, search, status } = req.query;
 
       if(page === undefined || isNaN(page)) {
-        return res.status(400).json({message: "Paga is required and must be a number"})
+        return res.status(400).json({message: "Page is required and must be a number"})
       }
       
-      const sales = await Sales.getAll(page, 5);
+      const sales = await Sales.getAll(page, 5, search, id, status);
       res.status(200).json(sales);
     } catch (error) {
       res.status(500).json({ message: "Error retrieving sales", error });

@@ -54,19 +54,69 @@ class Sales {
     }
   }
 
-  async getAll(page = 1, limit = 5) {
+  async getAll(page = 1, limit = 5, search = "", status = '') {
     try {
       const skip = (page - 1) * limit;
-
       var next = false
 
-      const sales = await SalesModel
-                .find()
-                .limit(limit)
-                .skip(skip)
-                .sort({ _id: -1 });
-                
-      const countDoc = await SalesModel.countDocuments()
+      const isObjectId = mongoose.Types.ObjectId.isValid(search);
+
+      const matchCondition = {
+        $and: [
+          {
+            $or: [
+              { "clientData.name": { $regex: search, $options: 'i' } },
+              { "productData.name": { $regex: search, $options: 'i' } },
+              ...(isObjectId ? [{ _id: new mongoose.Types.ObjectId(search) }] : []),
+            ]
+          }
+        ]
+      };
+
+      if (status) {
+        matchCondition.$and.push({ status: status }); 
+      }
+
+      const sales = await SalesModel.aggregate([
+        {
+          $lookup: {
+            from: "users",       
+            localField: "clientId", 
+            foreignField: "_id",  
+            as: "clientData"
+          }
+        },
+        {
+          $lookup: {
+            from: "products",    
+            localField: "productId",
+            foreignField: "_id",
+            as: "productData"
+          }
+        },
+        { $unwind: "$clientData" },
+        { $unwind: "$productData" },
+        { $match: matchCondition },
+        {
+          $project: {
+              _id: 1,
+              totalPrice: { $toDouble: "$totalPrice" },       
+              saleDate: 1,       
+              status: 1,         
+              "clientData.name": 1,   
+              "productData.name": 1, 
+            }
+        },
+        { $sort: { saleDate: -1 } },
+        {
+          $facet: {
+            metadata: [{ $count: "total" }],
+            data: [{ $skip: skip }, { $limit: limit }]
+          }
+        }
+      ]);
+
+      const countDoc = sales[0].metadata[0] ? sales[0].metadata[0].total : 0;
 
       if (skip + limit < countDoc) {
         next = true
@@ -74,7 +124,7 @@ class Sales {
 
       const totalPages = Math.ceil(countDoc / limit);
    
-      return { sales, totalPages, next };
+      return { sales: sales[0].data, totalPages, total: countDoc, next };
     } catch (error) {
       throw new Error("Error getting sales: " + error.message);
     }

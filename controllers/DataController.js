@@ -86,39 +86,21 @@ class DataController {
 
   async dataSales(req, res) {
     try {
-      const { page } = req.query
+      const { page, search, status } = req.query
 
       if(page === undefined || isNaN(page)) {
-        return res.status(400).json({message: "Paga is required and must be a number"})
+        return res.status(400).json({message: "Page is required and must be a number"})
       }
 
-      const salesAll = await Sales.getAll(page, 5);
+      const { sales, total, totalPages, next } = await Sales.getAll(page, 5, search, status);
 
       const newUsers = await User.getNewUsers();
-
-      const sales = await Promise.all(
-        salesAll.sales.map(async (i) => {
-          const product = await Product.findById(i.productId);
-          const user = await User.findById(i.clientId);
-
-          const newObj = {
-            id: i._id,
-            product: product.name,
-            client: user.user.name,
-            totalPrice: Number(i.totalPrice),
-            saleDate: i.saleDate,
-            status: i.status,
-          };
-
-          return newObj;
-        })
-      );
 
       const budges = await Sales.getSalesWeek();
 
       const AUR = budges.quantity / newUsers.currentCount || 0;
 
-      res.status(200).json({ totalPages: salesAll.totalPages, sales, next: salesAll.next, budges, AUR });
+      res.status(200).json({ sales, total, totalPages, next, budges, AUR });
     } catch (error) {
       res.status(500).json({ message: "Error retrieving data sales", error });
     }
