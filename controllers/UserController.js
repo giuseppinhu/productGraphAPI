@@ -1,8 +1,10 @@
-const User = require("../models/User");
+require("dotenv").config();
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const secret = "hjldasflhkj";
+const User = require("../models/User");
+const Companie = require("../models/Companie");
 
 class UserConstroller {
   async createUser(req, res) {
@@ -14,6 +16,7 @@ class UserConstroller {
         res.status(400).json({ error: "Name is required" });
         return;
       }
+
       if (
         data.password === undefined ||
         data.password === null ||
@@ -22,6 +25,7 @@ class UserConstroller {
         res.status(400).json({ error: "Password is required" });
         return;
       }
+
       if (
         data.email === undefined ||
         data.email === null ||
@@ -31,10 +35,27 @@ class UserConstroller {
         return;
       }
 
+      if (
+        data.companie_id === undefined ||
+        data.companie_id === null ||
+        data.companie_id === " " ||
+        data.companie_id.length <= 23
+      ) {
+        res.status(400).json({ error: "Companie ID is required" });
+        return;
+      }
+
       const emailExists = await User.findByEmail(data.email);
 
       if (emailExists.sucess) {
         res.status(400).json({ error: "Email already in use" });
+        return;
+      }
+
+      const companieExist = await Companie.getById(data.companie_id);
+
+      if (!companieExist.sucess) {
+        res.status(404).json({ error: "Companie not found" });
         return;
       }
 
@@ -48,6 +69,7 @@ class UserConstroller {
 
         data.password = hash;
         const user = await User.create(data);
+
         req.io.emit("dashboard:update");
         res.status(201).json({ message: "User created successfully", user });
       });
@@ -74,8 +96,21 @@ class UserConstroller {
 
   async getAllUsers(req, res) {
     try {
-      const users = await User.getAll();
-      res.status(200).json({ users });
+      const { companie_id } = req.body;
+      const { page, search } = req.query;
+
+      const users = await User.getAll(companie_id, page, 5, search);
+
+      if (users.error) {
+        res.status(406).json({ error: users.error });
+      }
+
+      res.status(200).json({
+        users: users.users,
+        total: users.totalUsers,
+        totalPages: users.totalPages,
+        next: users.next,
+      });
     } catch (error) {
       res.status(500).json({ error: "Internal server error" });
     }
@@ -83,8 +118,13 @@ class UserConstroller {
 
   async getUserById(req, res) {
     try {
-      const { id } = req.body
+      const { id } = req.body;
       const user = await User.findById(id);
+
+      if (!user.sucess) {
+        res.status(404).json({ error: "User not found!" });
+      }
+
       res.status(200).json({ user });
     } catch (error) {
       res.status(500).json({ error: "Internal server error" });
@@ -124,21 +164,62 @@ class UserConstroller {
             const token = jwt.sign(
               {
                 id: result.user._id,
+                companieId: result.user.companie_id,
                 email: result.user.email,
                 name: result.user.name,
                 role: result.user.role,
               },
-              secret,
-              { expiresIn: "1h" }
+              process.env.JWT_SECRET,
+              { expiresIn: "1h" },
             );
             res.status(200).json({ message: "Login successful", token });
           } else {
             res.status(401).json({ error: "Invalid credentials" });
           }
-        }
+        },
       );
     }
   }
+
+  async uploadAvatar(req, res) {
+    try {
+      const { id } = req.body;
+
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      if (id != undefined || id.length <= 0) {
+        return res.status(400).json({ error: "ID invalid!" });
+      }
+
+      const fileUrl = req.file.path;
+
+      const result = await User.updateAvatar(id, fileUrl);
+
+      if (!result.sucess) {
+        res.status(406).json({ result });
+      }
+
+      res.status(200).json({ success: result.sucess, fileUrl: fileUrl });
+    } catch (error) {
+      console.error("Erro no upload:", error);
+      res.status(400).json({ error: "Error in upload avatar" });
+    }
+  }
+
+  async update(req, res) {
+    try {
+      const data = req.body
+
+      const result = await User.update(data)
+
+      res.json({ sucess: true })
+    } catch (error) {
+      res.status(500).json({ error: "Error update user"})
+    }
+  }
+
 }
 
 module.exports = new UserConstroller();

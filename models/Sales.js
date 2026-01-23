@@ -12,9 +12,9 @@ class Sales {
     try {
       const product = await Product.findById(data.productId);
       const priceReal = product.price * data.quantity;
-      const user = await User.findById(data.clientId)
+      const user = await User.findById(data.clientId);
 
-      if(!user.sucess) {
+      if (!user.sucess) {
         return { success: false, message: "User not found!" };
       }
 
@@ -28,7 +28,7 @@ class Sales {
 
       const result = await Product.updateQuantity(
         data.productId,
-        data.quantity
+        data.quantity,
       );
 
       if (!result.success) {
@@ -54,10 +54,10 @@ class Sales {
     }
   }
 
-  async getAll(page = 1, limit = 5, search = "", status = '') {
+  async getAll(page = 1, limit = 5, search = "", status = "") {
     try {
       const skip = (page - 1) * limit;
-      var next = false
+      var next = false;
 
       const isObjectId = mongoose.Types.ObjectId.isValid(search);
 
@@ -65,65 +65,67 @@ class Sales {
         $and: [
           {
             $or: [
-              { "clientData.name": { $regex: search, $options: 'i' } },
-              { "productData.name": { $regex: search, $options: 'i' } },
-              ...(isObjectId ? [{ _id: new mongoose.Types.ObjectId(search) }] : []),
-            ]
-          }
-        ]
+              { "clientData.name": { $regex: search, $options: "i" } },
+              { "productData.name": { $regex: search, $options: "i" } },
+              ...(isObjectId
+                ? [{ _id: new mongoose.Types.ObjectId(search) }]
+                : []),
+            ],
+          },
+        ],
       };
 
       if (status) {
-        matchCondition.$and.push({ status: status }); 
+        matchCondition.$and.push({ status: status });
       }
 
       const sales = await SalesModel.aggregate([
         {
           $lookup: {
-            from: "users",       
-            localField: "clientId", 
-            foreignField: "_id",  
-            as: "clientData"
-          }
+            from: "users",
+            localField: "clientId",
+            foreignField: "_id",
+            as: "clientData",
+          },
         },
         {
           $lookup: {
-            from: "products",    
+            from: "products",
             localField: "productId",
             foreignField: "_id",
-            as: "productData"
-          }
+            as: "productData",
+          },
         },
         { $unwind: "$clientData" },
         { $unwind: "$productData" },
         { $match: matchCondition },
         {
           $project: {
-              _id: 1,
-              totalPrice: { $toDouble: "$totalPrice" },       
-              saleDate: 1,       
-              status: 1,         
-              "clientData.name": 1,   
-              "productData.name": 1, 
-            }
+            _id: 1,
+            totalPrice: { $toDouble: "$totalPrice" },
+            saleDate: 1,
+            status: 1,
+            "clientData.name": 1,
+            "productData.name": 1,
+          },
         },
         { $sort: { saleDate: -1 } },
         {
           $facet: {
             metadata: [{ $count: "total" }],
-            data: [{ $skip: skip }, { $limit: limit }]
-          }
-        }
+            data: [{ $skip: skip }, { $limit: limit }],
+          },
+        },
       ]);
 
       const countDoc = sales[0].metadata[0] ? sales[0].metadata[0].total : 0;
 
       if (skip + limit < countDoc) {
-        next = true
+        next = true;
       }
 
       const totalPages = Math.ceil(countDoc / limit);
-   
+
       return { sales: sales[0].data, totalPages, total: countDoc, next };
     } catch (error) {
       throw new Error("Error getting sales: " + error.message);
@@ -297,14 +299,14 @@ class Sales {
         revenueGrowth: {
           percentage: calculateGrowthPercentage(
             previous.totalRevenue,
-            current.totalRevenue
+            current.totalRevenue,
           ),
           isPositive: current.totalRevenue >= previous.totalRevenue,
         },
         salesGrowth: {
           percentage: calculateGrowthPercentage(
             previous.totalSales,
-            current.totalSales
+            current.totalSales,
           ),
           isPositive: current.totalSales >= previous.totalSales,
         },
@@ -312,7 +314,7 @@ class Sales {
           value: calcTicket(current),
           percentage: calculateGrowthPercentage(
             calcTicket(previous),
-            calcTicket(current)
+            calcTicket(current),
           ),
           isPositive: calcTicket(current) >= calcTicket(previous),
         },

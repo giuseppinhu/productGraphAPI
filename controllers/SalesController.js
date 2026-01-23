@@ -4,17 +4,33 @@ class SalesController {
   async createSale(req, res) {
     try {
       const data = req.body;
-      
-      if(data.productId === undefined || data.clientId === undefined || data.quantity === undefined || data.totalPrice === undefined){
-        return res.status(400).json({ message: "Missing required fields - is undefined" });
+
+      if (
+        data.productId === undefined ||
+        data.clientId === undefined ||
+        data.quantity === undefined ||
+        data.totalPrice === undefined
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Missing required fields - is undefined" });
       }
 
-      if(data.productId.length <= 0 || data.clientId.length <= 0 || data.quantity <= 0 || data.totalPrice <= 0){
-        return res.status(400).json({ message: "Missing required fields - length is zero" });
+      if (
+        data.productId.length <= 0 ||
+        data.clientId.length <= 0 ||
+        data.quantity <= 0 ||
+        data.totalPrice <= 0
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Missing required fields - length is zero" });
       }
 
-       if(isNaN(data.quantity) || isNaN(data.totalPrice)){
-        return res.status(400).json({ message: "Missing required fields - not is a number" });
+      if (isNaN(data.quantity) || isNaN(data.totalPrice)) {
+        return res
+          .status(400)
+          .json({ message: "Missing required fields - not is a number" });
       }
 
       const sale = await Sales.create(data);
@@ -35,10 +51,12 @@ class SalesController {
     try {
       const { page, search, status } = req.query;
 
-      if(page === undefined || isNaN(page)) {
-        return res.status(400).json({message: "Page is required and must be a number"})
+      if (page === undefined || isNaN(page)) {
+        return res
+          .status(400)
+          .json({ message: "Page is required and must be a number" });
       }
-      
+
       const sales = await Sales.getAll(page, 5, search, id, status);
       res.status(200).json(sales);
     } catch (error) {

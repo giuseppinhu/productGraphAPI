@@ -14,13 +14,13 @@ const salesSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    default: "pending"
+    default: "pending",
   },
   clientId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
-  }
-}); 
+  },
+});
 
 module.exports = salesSchema;

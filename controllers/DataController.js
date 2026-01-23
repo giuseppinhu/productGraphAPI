@@ -21,13 +21,13 @@ class DataController {
                 totalSales: i.totalSales,
                 name: product.name,
                 date: i.lastSaleDate,
-            };
+              };
 
               return newObj;
             } else {
               return { message: "Product not found!" };
             }
-          })
+          }),
         );
 
         return newMoreSales;
@@ -35,7 +35,6 @@ class DataController {
 
       const getDataSaleLast = async () => {
         const rawSales = await Sales.getLatest();
-    
 
         const newSales = await Promise.all(
           rawSales.map(async (i) => {
@@ -53,7 +52,7 @@ class DataController {
             } else {
               return { message: "User not found!" };
             }
-          })
+          }),
         );
 
         return newSales;
@@ -64,8 +63,13 @@ class DataController {
 
       const graphData = await Sales.getProductMonth();
 
-      if(productSales.message === "Product not found!" || salesLast.message === "User not found!"){
-        return res.status(404).json({ message: "Error retring product or user data" });
+      if (
+        productSales.message === "Product not found!" ||
+        salesLast.message === "User not found!"
+      ) {
+        return res
+          .status(404)
+          .json({ message: "Error retring product or user data" });
       }
 
       const data = {
@@ -86,13 +90,20 @@ class DataController {
 
   async dataSales(req, res) {
     try {
-      const { page, search, status } = req.query
+      const { page, search, status } = req.query;
 
-      if(page === undefined || isNaN(page)) {
-        return res.status(400).json({message: "Page is required and must be a number"})
+      if (page === undefined || isNaN(page)) {
+        return res
+          .status(400)
+          .json({ message: "Page is required and must be a number" });
       }
 
-      const { sales, total, totalPages, next } = await Sales.getAll(page, 5, search, status);
+      const { sales, total, totalPages, next } = await Sales.getAll(
+        page,
+        5,
+        search,
+        status,
+      );
 
       const newUsers = await User.getNewUsers();
 
@@ -103,6 +114,20 @@ class DataController {
       res.status(200).json({ sales, total, totalPages, next, budges, AUR });
     } catch (error) {
       res.status(500).json({ message: "Error retrieving data sales", error });
+    }
+  }
+
+  async dataUser(req, res) {
+    try {
+      const { companie_id } = req.body;
+      const { page, search } = req.query;
+
+      const users = await User.getNewUsers();
+      const dataUsers = await User.getAll(companie_id, page, 5, search);
+
+      res.status(200).json({ totalNew: users.currentCount, dataUsers });
+    } catch (error) {
+      res.status(400).json({ error: "Error retriving data users" });
     }
   }
 }

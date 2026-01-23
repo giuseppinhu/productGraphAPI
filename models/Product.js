@@ -14,14 +14,7 @@ class Product {
 
   async create(data) {
     try {
-      const { name, price, description, quantity } = data;
-
-      const product = new ProductModel({
-        name,
-        price,
-        description,
-        quantity,
-      });
+      const product = new ProductModel(data);
 
       await product.save();
       return product;
@@ -59,7 +52,7 @@ class Product {
       await ProductModel.findByIdAndUpdate(
         id,
         { $inc: { quantity: -quantity } },
-        { new: true }
+        { new: true },
       );
 
       return { success: true };
@@ -71,19 +64,21 @@ class Product {
 
   async findById(id) {
     try {
-      const product = await ProductModel.findById(id).select("name price createdAt")
-      return product
+      const product = await ProductModel.findById(id).select(
+        "name price createdAt",
+      );
+      return product;
     } catch (error) {
-       throw new Error("Error retrieving product: " + error.message);
+      throw new Error("Error retrieving product: " + error.message);
     }
   }
 
-  async findLatest(data){
+  async findLatest(data) {
     try {
       const products = await Promise.all(
         data.map(async (item) => {
           return await this.findById(String(item.productId));
-        })
+        }),
       );
 
       return products.filter(Boolean);
