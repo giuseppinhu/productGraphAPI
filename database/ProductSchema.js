@@ -12,17 +12,26 @@ const productSchema = new mongoose.Schema({
   description: {
     type: String,
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
+  categorie: {
+    type: String,
+    default: "none"
   },
   quantity: {
     type: Number,
+  },
+  SKU: {
+    type: String,
+    default: "TESTE-SKU",
+    required: true
   },
   companieId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Companie",
     required: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
   },
 });
 

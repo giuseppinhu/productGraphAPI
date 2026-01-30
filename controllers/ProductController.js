@@ -7,8 +7,7 @@ class ProductController {
       const data = req.body;
 
       if (data.quantity === undefined) {
-        res.status(406).json({ message: "Quantity not accepted." });
-        return;
+        return res.status(406).json({ message: "Quantity not accepted." });
       }
 
       if (
@@ -17,25 +16,23 @@ class ProductController {
         data.name.length < 2 ||
         data.name.length > 100
       ) {
-        res.status(406).json({ message: "Name not accepted." });
-        return;
+        return res.status(406).json({ message: "Name not accepted." });
       }
 
       if (data.price === undefined || isNaN(data.price) || data.price < 0) {
-        res.status(406).json({ message: "Price not accepted." });
-        return;
+        return res.status(406).json({ message: "Price not accepted." });
       }
 
-      const resultComp = await Companie.getById(data.companieId);
-
-      console.log(resultComp);
+      const resultComp = await Companie.getById(data.companieId)
 
       if (!resultComp.sucess) {
-        res.status(404).json({ message: "Companie not found." });
-        return;
+        return res.status(404).json({ message: "Companie not found." });
       }
 
       const product = await Product.create(data);
+
+      console.log(product)
+
 
       res
         .status(201)

@@ -79,7 +79,7 @@ class UserConstroller {
   }
 
   async deleteUser(req, res) {
-    const { id } = req.body;
+    const { id } = req.params;
 
     if (id === undefined || id === null || id === " ") {
       res.status(400).json({ error: "ID is required" });
@@ -189,19 +189,25 @@ class UserConstroller {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      if (id != undefined || id.length <= 0) {
+      if (!id) {
         return res.status(400).json({ error: "ID invalid!" });
       }
 
-      const fileUrl = req.file.path;
+      const resultUser = await User.findById(id)
+    
+      if(resultUser.sucess) {
+        const fileUrl = req.file.path;
 
-      const result = await User.updateAvatar(id, fileUrl);
+        const result = await User.updateAvatar(id, fileUrl);
 
-      if (!result.sucess) {
-        res.status(406).json({ result });
+        if (!result.sucess) {
+          res.status(406).json({ result });
+        }
+
+        res.status(200).json({ success: result.sucess, fileUrl: fileUrl });
+      } else {
+        res.status(200).json({ message: "User Not Found!" });
       }
-
-      res.status(200).json({ success: result.sucess, fileUrl: fileUrl });
     } catch (error) {
       console.error("Erro no upload:", error);
       res.status(400).json({ error: "Error in upload avatar" });
@@ -211,10 +217,13 @@ class UserConstroller {
   async update(req, res) {
     try {
       const data = req.body
-
       const result = await User.update(data)
 
-      res.json({ sucess: true })
+      if(result === null) {
+        res.status(400).json({ sucess: false, message: "Not found user" })
+      }
+       
+      res.json({ sucess: true, message: "User update to sucess" })
     } catch (error) {
       res.status(500).json({ error: "Error update user"})
     }

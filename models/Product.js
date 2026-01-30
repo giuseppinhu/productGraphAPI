@@ -86,6 +86,74 @@ class Product {
       throw new Error("Error retrieving latest products: " + error.message);
     }
   }
+
+  async dataProducts(companieId, page = 1, limit = 15, search = '') {
+    try { 
+      const matchCondition = {
+        companieId: new mongoose.Types.ObjectId(companieId),
+        ...(search && search.trim() !== ""
+          ? {
+              $or: [
+                { name: { $regex: search, $options: "i" } },
+                { SKU: { $regex: search, $options: "i" } },
+              ]
+            }
+          : {}),
+      };
+
+      const products = await ProductModel.aggregate([
+        { $match: matchCondition },
+        {
+          $facet: {
+            metadata: [
+            {
+              $group: {
+                _id: null,
+                countDocs: { $sum: 1 },
+                totalQuantity: { $sum: "$quantity" },
+                totalPrice: { $sum: "$price" },
+                total: {
+                  $sum: {
+                    $multiply: ["$price", "$quantity"]
+                  }
+                }
+              }
+            },
+            {
+              $project: {
+                _id: 0,
+                total: { $toDouble: "$total" },
+                totalQuantity: "$totalQuantity",
+                totalPrice: { $toDouble: "$totalPrice" },
+                countDocs: 1
+              }
+            }
+          ],
+            data: [
+              {
+                $project: {
+                  price:  { $toDouble: "$price" },
+                  name: 1,
+                  description: 1,
+                  categorie: 1,
+                  quantity: 1,
+                  SKU: 1,
+                  total: 1
+                }
+              },
+              { $skip: 0 }, { $limit: 15 }
+            ],
+          },
+        }
+      ])
+
+      const totalDocs = await ProductModel.countDocuments({companieId})
+
+      return { products, totalDocs  }
+    } catch (error) {
+      throw new Error("Error in data products")
+    }
+  }
 }
 
 module.exports = new Product();

@@ -27,7 +27,7 @@ router.delete("/product", AdminAuth, ProductController.deleteProduct);
 router.post("/id/product", ProductController.findById);
 
 // ROTAS DE VENDA
-router.post("/sale", UserLogged, SalesController.createSale);
+router.post("/sale", SalesController.createSale);
 
 router.get("/sale", SalesController.getSales);
 
@@ -40,11 +40,11 @@ router.post("/user", UserController.createUser);
 
 router.post("/id/user", UserController.getUserById);
 
-router.delete("/user", AdminAuth, UserController.deleteUser);
+router.delete("/user/:id", UserController.deleteUser);
 
 router.post("/login", UserController.loginUser);
 
-router.post("/update", UserController.update);
+router.put("/update", UserController.update);
 
 router.post("/upload", upload.single("file"), UserController.uploadAvatar);
 
@@ -54,6 +54,8 @@ router.get("/data/dashboard", DataController.dataDashboard);
 router.get("/data/sales", DataController.dataSales);
 
 router.post("/data/users", DataController.dataUser);
+
+router.post("/data/product", DataController.dataProduct);
 
 // ROTA DE EMPRESAS
 

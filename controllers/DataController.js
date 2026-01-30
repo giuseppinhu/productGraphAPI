@@ -130,6 +130,19 @@ class DataController {
       res.status(400).json({ error: "Error retriving data users" });
     }
   }
+
+  async dataProduct(req, res) {
+    try {
+      const { companie_id } = req.body
+      const { page, search } = req.query;
+      
+      const product = await Product.dataProducts(companie_id, page, 5, search)
+
+      res.json({ product: product.products, totalDoc: product.totalDocs })
+    } catch (error) {
+      res.status(400).json({ error: "Error retriving data products" });
+    }
+  }
 }
 
 module.exports = new DataController();
