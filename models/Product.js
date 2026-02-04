@@ -14,6 +14,10 @@ class Product {
 
   async create(data) {
     try {
+      const prefix = data.name.substring(0, 3).toUpperCase();
+      const random = Math.floor(1000 + Math.random() * 9000); // 4 dígitos aleatórios
+      data.SKU = `${prefix}-${random}`;
+
       const product = new ProductModel(data);
 
       await product.save();
@@ -67,6 +71,7 @@ class Product {
       const product = await ProductModel.findById(id).select(
         "name price createdAt",
       );
+      
       return product;
     } catch (error) {
       throw new Error("Error retrieving product: " + error.message);
@@ -132,13 +137,15 @@ class Product {
             data: [
               {
                 $project: {
+                  id: 1,
                   price:  { $toDouble: "$price" },
                   name: 1,
                   description: 1,
                   categorie: 1,
                   quantity: 1,
                   SKU: 1,
-                  total: 1
+                  total: 1,
+                  product_url: 1
                 }
               },
               { $skip: 0 }, { $limit: 15 }
@@ -152,6 +159,36 @@ class Product {
       return { products, totalDocs  }
     } catch (error) {
       throw new Error("Error in data products")
+    }
+  }
+
+  async updateAvatar(id, url) {
+    try {
+      const result = await this.findById(id);
+
+      if (!result) {
+        return { message: "Product not found" };
+      }
+
+      const user = await ProductModel.updateOne({ _id: id }, { product_url: url });
+
+      if (!user) {
+        return { sucess: false };
+      }
+
+      return { sucess: true };
+    } catch (error) {
+      throw new Error("Error update avatar");
+    }
+  }
+
+  async update(data){
+    try{
+      const result = await ProductModel.findByIdAndUpdate(data.id, data)
+      
+      return result
+    } catch (error) {
+      throw new Error("Error in update data User" + error)
     }
   }
 }

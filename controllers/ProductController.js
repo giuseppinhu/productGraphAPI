@@ -6,7 +6,7 @@ class ProductController {
     try {
       const data = req.body;
 
-      if (data.quantity === undefined) {
+      if (!data.quantity) {
         return res.status(406).json({ message: "Quantity not accepted." });
       }
 
@@ -31,9 +31,6 @@ class ProductController {
 
       const product = await Product.create(data);
 
-      console.log(product)
-
-
       res
         .status(201)
         .json({ message: "Product created successfully", product });
@@ -44,7 +41,7 @@ class ProductController {
 
   async deleteProduct(req, res) {
     try {
-      const { id } = req.body;
+      const { id } = req.params;
       const result = await Product.delete(id);
 
       if (!result) {
@@ -79,6 +76,62 @@ class ProductController {
       res.status(500).json({ message: "Error retrieving products", error });
     }
   }
+
+  async updateProduct(req, res) {
+    try {
+      const data = req.body;
+
+      if(!data.name) {
+        res.status(500).json({ message: "Name not defined!" });  
+      }
+
+      if(!data.quantity) {
+        res.status(500).json({ message: "Quantity not defined!" });  
+      }
+
+      if(!data.price) {
+        res.status(500).json({ message: "Prices not defined!" });  
+      }
+
+      const products = await Product.update(data);
+      res.status(200).json({ products });
+    } catch (error) {
+      res.status(500).json({ message: "Error update products", error });
+    }
+  }
+
+  async uploadImage(req, res) {
+    try {
+      const { id } = req.body;
+
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      if (!id) {
+        return res.status(400).json({ error: "ID invalid!" });
+      }
+
+      const resultProd = await Product.findById(id)
+    
+      if(resultProd) {
+        const fileUrl = req.file.path;
+
+        const result = await Product.updateAvatar(id, fileUrl);
+
+        if (!result.sucess) {
+          res.status(406).json({ result });
+        }
+
+        res.status(200).json({ success: true, fileUrl: fileUrl });
+      } else {
+        res.status(200).json({ message: "Product Not Found!" });
+      }
+    } catch (error) {
+      console.error("Erro no upload:", error);
+      res.status(400).json({ error: "Error in upload avatar" });
+    }
+  } 
 }
 
 module.exports = new ProductController();

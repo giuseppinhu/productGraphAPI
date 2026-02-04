@@ -10,7 +10,6 @@ class DataController {
 
       const getDataProduct = async () => {
         const rawMoreSales = await Sales.getProductMoreSale();
-
         const newMoreSales = await Promise.all(
           rawMoreSales.map(async (i) => {
             const product = await Product.findById(i._id);
@@ -18,7 +17,7 @@ class DataController {
             if (product != undefined) {
               const newObj = {
                 totalQuantity: i.totalQuantity,
-                totalSales: i.totalSales,
+                totalSales: Number(i.totalSales),
                 name: product.name,
                 date: i.lastSaleDate,
               };
@@ -43,7 +42,7 @@ class DataController {
             if (user.sucess) {
               const newObj = {
                 _id: i._id,
-                totalPrice: i.totalPrice,
+                totalPrice: Number(i.totalPrice),
                 status: i.status,
                 saleDate: i.saleDate,
                 name: user?.user.name || "Name Test",
@@ -90,7 +89,7 @@ class DataController {
 
   async dataSales(req, res) {
     try {
-      const { page, search, status } = req.query;
+      const { page, search, status } = req.query
 
       if (page === undefined || isNaN(page)) {
         return res
@@ -135,8 +134,8 @@ class DataController {
     try {
       const { companie_id } = req.body
       const { page, search } = req.query;
-      
-      const product = await Product.dataProducts(companie_id, page, 5, search)
+
+      const product = await Product.dataProducts(companie_id, page, 5, search.trim())
 
       res.json({ product: product.products, totalDoc: product.totalDocs })
     } catch (error) {

@@ -10,9 +10,17 @@ const calculateGrowthPercentage = require("../utils/calculateGrowthPercentage");
 class Sales {
   async create(data) {
     try {
+      if (!mongoose.Types.ObjectId.isValid(data.productId)) {
+        return { success: false, message: "Invalid product ID" };
+      }
+
       const product = await Product.findById(data.productId);
       const priceReal = product.price * data.quantity;
       const user = await User.findById(data.clientId);
+
+      if (!product) {
+        return { success: false, message: "Product not found!" };
+      }
 
       if (!user.sucess) {
         return { success: false, message: "User not found!" };
@@ -54,25 +62,28 @@ class Sales {
     }
   }
 
-  async getAll(page = 1, limit = 5, search = "", status = "") {
+  async getAll(companieId, page = 1, limit = 5, search = "", status = "") {
     try {
       const skip = (page - 1) * limit;
       var next = false;
 
       const isObjectId = mongoose.Types.ObjectId.isValid(search);
 
+      console.log(companieId)
+
       const matchCondition = {
-        $and: [
-          {
-            $or: [
-              { "clientData.name": { $regex: search, $options: "i" } },
-              { "productData.name": { $regex: search, $options: "i" } },
-              ...(isObjectId
-                ? [{ _id: new mongoose.Types.ObjectId(search) }]
-                : []),
-            ],
-          },
-        ],
+          companieId: new mongoose.Types.ObjectId(companieId),
+          ...(search && search.trim() !== ""
+            ? {
+              $or: [
+                { "clientData.name": { $regex: search, $options: "i" } },
+                { "productData.name": { $regex: search, $options: "i" } },
+                ...(isObjectId
+                  ? [{ _id: new mongoose.Types.ObjectId(search) }]
+                  : []),
+              ],
+            }
+          : {}),
       };
 
       if (status) {

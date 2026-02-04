@@ -9,9 +9,8 @@ const CompanieController = require("../controllers/CompanieController");
 
 const AdminAuth = require("../middleware/AdminAuth");
 const UserLogged = require("../middleware/UserLogged");
-const uploadMiddleware = require("../middleware/UploadAvatar");
 
-const upload = uploadMiddleware("avatars");
+const dynamicUpload = require("../middleware/dynamcUpload");
 
 router.get("/", (req, res) => {
   res.send("Welcome to the Product Graph API");
@@ -20,16 +19,20 @@ router.get("/", (req, res) => {
 // ROTAS DE PRODUTO
 router.get("/product", ProductController.findAllProducts);
 
-router.post("/product", AdminAuth, ProductController.createProduct);
+router.post("/product", ProductController.createProduct);
 
-router.delete("/product", AdminAuth, ProductController.deleteProduct);
+router.delete("/product/:id", ProductController.deleteProduct);
 
 router.post("/id/product", ProductController.findById);
+
+router.put("/product", ProductController.updateProduct)
+
+router.post("/product/upload", dynamicUpload, ProductController.uploadImage);
 
 // ROTAS DE VENDA
 router.post("/sale", SalesController.createSale);
 
-router.get("/sale", SalesController.getSales);
+router.post("/sales", SalesController.getSales);
 
 router.delete("/sale", SalesController.deleteSale);
 
@@ -37,6 +40,8 @@ router.delete("/sale", SalesController.deleteSale);
 router.post("/users", AdminAuth, UserController.getAllUsers);
 
 router.post("/user", UserController.createUser);
+
+router.post("/user/token", UserController.createUser);
 
 router.post("/id/user", UserController.getUserById);
 
@@ -46,7 +51,7 @@ router.post("/login", UserController.loginUser);
 
 router.put("/update", UserController.update);
 
-router.post("/upload", upload.single("file"), UserController.uploadAvatar);
+router.post("/user/upload", dynamicUpload, UserController.uploadAvatar);
 
 // ROTA DA DADOS PARA A DASH
 router.get("/data/dashboard", DataController.dataDashboard);
@@ -58,7 +63,6 @@ router.post("/data/users", DataController.dataUser);
 router.post("/data/product", DataController.dataProduct);
 
 // ROTA DE EMPRESAS
-
 router.post("/companie", CompanieController.createCompanie);
 
 router.post("/id/companie", CompanieController.findById);

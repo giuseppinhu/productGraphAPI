@@ -9,6 +9,10 @@ const productSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.Decimal128,
     required: true,
   },
+  product_url: {
+    type: String,
+    default: "https://res.cloudinary.com/dhn5ceymi/image/upload/v1769785236/caixa_ipbl5e.png"
+  },
   description: {
     type: String,
   },
@@ -21,7 +25,10 @@ const productSchema = new mongoose.Schema({
   },
   SKU: {
     type: String,
-    default: "TESTE-SKU",
+    default: "NONE-SKU",
+    unique: true,
+    uppercase: true,
+    trim: true,
     required: true
   },
   companieId: {
