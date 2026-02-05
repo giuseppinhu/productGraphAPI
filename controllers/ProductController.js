@@ -23,7 +23,7 @@ class ProductController {
         return res.status(406).json({ message: "Price not accepted." });
       }
 
-      const resultComp = await Companie.getById(data.companieId)
+      const resultComp = await Companie.getById(data.companieId);
 
       if (!resultComp.sucess) {
         return res.status(404).json({ message: "Companie not found." });
@@ -81,16 +81,16 @@ class ProductController {
     try {
       const data = req.body;
 
-      if(!data.name) {
-        res.status(500).json({ message: "Name not defined!" });  
+      if (!data.name) {
+        res.status(500).json({ message: "Name not defined!" });
       }
 
-      if(!data.quantity) {
-        res.status(500).json({ message: "Quantity not defined!" });  
+      if (!data.quantity) {
+        res.status(500).json({ message: "Quantity not defined!" });
       }
 
-      if(!data.price) {
-        res.status(500).json({ message: "Prices not defined!" });  
+      if (!data.price) {
+        res.status(500).json({ message: "Prices not defined!" });
       }
 
       const products = await Product.update(data);
@@ -112,9 +112,9 @@ class ProductController {
         return res.status(400).json({ error: "ID invalid!" });
       }
 
-      const resultProd = await Product.findById(id)
-    
-      if(resultProd) {
+      const resultProd = await Product.findById(id);
+
+      if (resultProd) {
         const fileUrl = req.file.path;
 
         const result = await Product.updateAvatar(id, fileUrl);
@@ -131,7 +131,7 @@ class ProductController {
       console.error("Erro no upload:", error);
       res.status(400).json({ error: "Error in upload avatar" });
     }
-  } 
+  }
 }
 
 module.exports = new ProductController();

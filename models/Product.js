@@ -71,7 +71,7 @@ class Product {
       const product = await ProductModel.findById(id).select(
         "name price createdAt",
       );
-      
+
       return product;
     } catch (error) {
       throw new Error("Error retrieving product: " + error.message);
@@ -92,8 +92,8 @@ class Product {
     }
   }
 
-  async dataProducts(companieId, page = 1, limit = 15, search = '') {
-    try { 
+  async dataProducts(companieId, page = 1, limit = 15, search = "") {
+    try {
       const matchCondition = {
         companieId: new mongoose.Types.ObjectId(companieId),
         ...(search && search.trim() !== ""
@@ -101,7 +101,7 @@ class Product {
               $or: [
                 { name: { $regex: search, $options: "i" } },
                 { SKU: { $regex: search, $options: "i" } },
-              ]
+              ],
             }
           : {}),
       };
@@ -111,54 +111,55 @@ class Product {
         {
           $facet: {
             metadata: [
-            {
-              $group: {
-                _id: null,
-                countDocs: { $sum: 1 },
-                totalQuantity: { $sum: "$quantity" },
-                totalPrice: { $sum: "$price" },
-                total: {
-                  $sum: {
-                    $multiply: ["$price", "$quantity"]
-                  }
-                }
-              }
-            },
-            {
-              $project: {
-                _id: 0,
-                total: { $toDouble: "$total" },
-                totalQuantity: "$totalQuantity",
-                totalPrice: { $toDouble: "$totalPrice" },
-                countDocs: 1
-              }
-            }
-          ],
+              {
+                $group: {
+                  _id: null,
+                  countDocs: { $sum: 1 },
+                  totalQuantity: { $sum: "$quantity" },
+                  totalPrice: { $sum: "$price" },
+                  total: {
+                    $sum: {
+                      $multiply: ["$price", "$quantity"],
+                    },
+                  },
+                },
+              },
+              {
+                $project: {
+                  _id: 0,
+                  total: { $toDouble: "$total" },
+                  totalQuantity: "$totalQuantity",
+                  totalPrice: { $toDouble: "$totalPrice" },
+                  countDocs: 1,
+                },
+              },
+            ],
             data: [
               {
                 $project: {
                   id: 1,
-                  price:  { $toDouble: "$price" },
+                  price: { $toDouble: "$price" },
                   name: 1,
                   description: 1,
                   categorie: 1,
                   quantity: 1,
                   SKU: 1,
                   total: 1,
-                  product_url: 1
-                }
+                  product_url: 1,
+                },
               },
-              { $skip: 0 }, { $limit: 15 }
+              { $skip: 0 },
+              { $limit: 15 },
             ],
           },
-        }
-      ])
+        },
+      ]);
 
-      const totalDocs = await ProductModel.countDocuments({companieId})
+      const totalDocs = await ProductModel.countDocuments({ companieId });
 
-      return { products, totalDocs  }
+      return { products, totalDocs };
     } catch (error) {
-      throw new Error("Error in data products")
+      throw new Error("Error in data products");
     }
   }
 
@@ -170,7 +171,10 @@ class Product {
         return { message: "Product not found" };
       }
 
-      const user = await ProductModel.updateOne({ _id: id }, { product_url: url });
+      const user = await ProductModel.updateOne(
+        { _id: id },
+        { product_url: url },
+      );
 
       if (!user) {
         return { sucess: false };
@@ -182,13 +186,13 @@ class Product {
     }
   }
 
-  async update(data){
-    try{
-      const result = await ProductModel.findByIdAndUpdate(data.id, data)
-      
-      return result
+  async update(data) {
+    try {
+      const result = await ProductModel.findByIdAndUpdate(data.id, data);
+
+      return result;
     } catch (error) {
-      throw new Error("Error in update data User" + error)
+      throw new Error("Error in update data User" + error);
     }
   }
 }

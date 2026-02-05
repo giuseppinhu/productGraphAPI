@@ -69,12 +69,10 @@ class Sales {
 
       const isObjectId = mongoose.Types.ObjectId.isValid(search);
 
-      console.log(companieId)
-
       const matchCondition = {
-          companieId: new mongoose.Types.ObjectId(companieId),
-          ...(search && search.trim() !== ""
-            ? {
+        companieId: new mongoose.Types.ObjectId(companieId),
+        ...(search && search.trim() !== ""
+          ? {
               $or: [
                 { "clientData.name": { $regex: search, $options: "i" } },
                 { "productData.name": { $regex: search, $options: "i" } },
@@ -143,9 +141,14 @@ class Sales {
     }
   }
 
-  async getProductMoreSale() {
+  async getProductMoreSale(companieId) {
     try {
       const sales = await SalesModel.aggregate([
+        {
+          $match: {
+            companieId: new mongoose.Types.ObjectId(companieId),
+          },
+        },
         {
           $group: {
             _id: "$productId",
@@ -171,9 +174,14 @@ class Sales {
     }
   }
 
-  async getProductMonth() {
+  async getProductMonth(companieId) {
     try {
       const sales = await SalesModel.aggregate([
+        {
+          $match: {
+            companieId: new mongoose.Types.ObjectId(companieId),
+          },
+        },
         {
           $group: {
             _id: { $month: "$saleDate" },
@@ -218,9 +226,9 @@ class Sales {
     }
   }
 
-  async getLatest() {
+  async getLatest(companieId) {
     try {
-      const sales = await SalesModel.find()
+      const sales = await SalesModel.find({ companieId })
         .select("productId totalPrice saleDate clientId status")
         .sort({ _id: -1 })
         .limit(5);
@@ -230,13 +238,14 @@ class Sales {
     }
   }
 
-  async getSalesWeek() {
+  async getSalesWeek(companieId) {
     try {
       const { startWeek, endWeek } = getDate;
 
       const sales = await SalesModel.aggregate([
         {
           $match: {
+            companieId: new mongoose.Types.ObjectId(companieId),
             saleDate: { $gte: startWeek, $lt: endWeek },
           },
         },
@@ -264,7 +273,7 @@ class Sales {
     }
   }
 
-  async dataSales() {
+  async dataSales(companieId) {
     try {
       const { startMonth, endMonth, startMonthPrev, endMonthPrev } = getDate;
 
@@ -272,6 +281,7 @@ class Sales {
         const [result] = await SalesModel.aggregate([
           {
             $match: {
+              companieId: new mongoose.Types.ObjectId(companieId),
               saleDate: { $gte: start, $lt: end },
             },
           },

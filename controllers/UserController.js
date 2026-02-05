@@ -96,7 +96,7 @@ class UserConstroller {
 
   async getAllUsers(req, res) {
     try {
-      const { companie_id } = req.body;
+      const companie_id = req.companie_id;
       const { page, search } = req.query;
 
       const users = await User.getAll(companie_id, page, 5, search);
@@ -118,7 +118,8 @@ class UserConstroller {
 
   async getUserById(req, res) {
     try {
-      const { id } = req.body;
+      const id = req.id;
+
       const user = await User.findById(id);
 
       if (!user.sucess) {
@@ -172,13 +173,33 @@ class UserConstroller {
               process.env.JWT_SECRET,
               { expiresIn: "1h" },
             );
+
+            res.cookie("token", token, {
+              httpOnly: true,
+              secure: false,
+              sameSite: "lax",
+              maxAge: 24 * 60 * 60 * 1000,
+            });
+
             res.status(200).json({ message: "Login successful", token });
           } else {
             res.status(401).json({ error: "Invalid credentials" });
           }
         },
       );
+    } else {
+      res.status(401).json({ error: "Invalid credentials" });
     }
+  }
+
+  async logout(req, res) {
+    res.clearCookie("token", {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: false,
+    });
+
+    res.json({ message: "Logout realizado" });
   }
 
   async uploadAvatar(req, res) {
@@ -193,9 +214,9 @@ class UserConstroller {
         return res.status(400).json({ error: "ID invalid!" });
       }
 
-      const resultUser = await User.findById(id)
-    
-      if(resultUser.sucess) {
+      const resultUser = await User.findById(id);
+
+      if (resultUser.sucess) {
         const fileUrl = req.file.path;
 
         const result = await User.updateAvatar(id, fileUrl);
@@ -216,19 +237,18 @@ class UserConstroller {
 
   async update(req, res) {
     try {
-      const data = req.body
-      const result = await User.update(data)
+      const data = req.body;
+      const result = await User.update(data);
 
-      if(result === null) {
-        res.status(400).json({ sucess: false, message: "Not found user" })
+      if (result === null) {
+        res.status(400).json({ sucess: false, message: "Not found user" });
       }
-       
-      res.json({ sucess: true, message: "User update to sucess" })
+
+      res.json({ sucess: true, message: "User update to sucess" });
     } catch (error) {
-      res.status(500).json({ error: "Error update user"})
+      res.status(500).json({ error: "Error update user" });
     }
   }
-
 }
 
 module.exports = new UserConstroller();

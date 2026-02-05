@@ -17,50 +17,50 @@ router.get("/", (req, res) => {
 });
 
 // ROTAS DE PRODUTO
-router.get("/product", ProductController.findAllProducts);
+router.get("/product", AdminAuth, ProductController.findAllProducts);
 
-router.post("/product", ProductController.createProduct);
+router.post("/product", AdminAuth, ProductController.createProduct);
 
-router.delete("/product/:id", ProductController.deleteProduct);
+router.delete("/product/:id", AdminAuth, ProductController.deleteProduct);
 
-router.post("/id/product", ProductController.findById);
+router.post("/id/product", UserLogged, ProductController.findById);
 
-router.put("/product", ProductController.updateProduct)
+router.put("/product", AdminAuth, ProductController.updateProduct);
 
 router.post("/product/upload", dynamicUpload, ProductController.uploadImage);
 
 // ROTAS DE VENDA
-router.post("/sale", SalesController.createSale);
+router.post("/sale", AdminAuth, SalesController.createSale);
 
-router.post("/sales", SalesController.getSales);
+router.post("/sales", AdminAuth, SalesController.getSales);
 
-router.delete("/sale", SalesController.deleteSale);
+router.delete("/sale", AdminAuth, SalesController.deleteSale);
 
 // ROTAS DE USUARIOS
 router.post("/users", AdminAuth, UserController.getAllUsers);
 
-router.post("/user", UserController.createUser);
+router.post("/user", AdminAuth, UserController.createUser);
 
-router.post("/user/token", UserController.createUser);
+router.post("/id/user", AdminAuth, UserController.getUserById);
 
-router.post("/id/user", UserController.getUserById);
-
-router.delete("/user/:id", UserController.deleteUser);
+router.delete("/user/:id", AdminAuth, UserController.deleteUser);
 
 router.post("/login", UserController.loginUser);
 
-router.put("/update", UserController.update);
+router.post("/logout", UserController.logout);
+
+router.put("/update", AdminAuth, UserController.update);
 
 router.post("/user/upload", dynamicUpload, UserController.uploadAvatar);
 
 // ROTA DA DADOS PARA A DASH
-router.get("/data/dashboard", DataController.dataDashboard);
+router.post("/data/dashboard", AdminAuth, DataController.dataDashboard);
 
-router.get("/data/sales", DataController.dataSales);
+router.post("/data/sales", AdminAuth, DataController.dataSales);
 
-router.post("/data/users", DataController.dataUser);
+router.post("/data/users", AdminAuth, DataController.dataUser);
 
-router.post("/data/product", DataController.dataProduct);
+router.post("/data/product", AdminAuth, DataController.dataProduct);
 
 // ROTA DE EMPRESAS
 router.post("/companie", CompanieController.createCompanie);

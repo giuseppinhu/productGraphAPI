@@ -11,14 +11,15 @@ const productSchema = new mongoose.Schema({
   },
   product_url: {
     type: String,
-    default: "https://res.cloudinary.com/dhn5ceymi/image/upload/v1769785236/caixa_ipbl5e.png"
+    default:
+      "https://res.cloudinary.com/dhn5ceymi/image/upload/v1769785236/caixa_ipbl5e.png",
   },
   description: {
     type: String,
   },
   categorie: {
     type: String,
-    default: "none"
+    default: "none",
   },
   quantity: {
     type: Number,
@@ -29,7 +30,7 @@ const productSchema = new mongoose.Schema({
     unique: true,
     uppercase: true,
     trim: true,
-    required: true
+    required: true,
   },
   companieId: {
     type: mongoose.Schema.Types.ObjectId,

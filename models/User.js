@@ -81,13 +81,14 @@ class User {
     }
   }
 
-  async getNewUsers() {
+  async getNewUsers(companieId) {
     try {
       const { startMonth, endMonth, startMonthPrev, endMonthPrev } = getDate;
 
       const users = await UserModel.aggregate([
         {
           $match: {
+            companie_id: new mongoose.Types.ObjectId(companieId),
             created_at: {
               $gte: startMonthPrev,
               $lt: endMonth,
@@ -151,6 +152,8 @@ class User {
         name: 1,
         email: 1,
         companie_id: 1,
+        avatar_url: 1,
+        role: 1
       });
 
       if (user != undefined) {
@@ -163,16 +166,16 @@ class User {
   }
 
   async findByToken(token) {
-      try {
-        const userDecoded = jwt.decode(token, process.env.JWT_SECRET);
-        if (userDecoded != {}) {
-          const result = await this.findById(userDecoded.id);
-          return result;
-        }
-      } catch (error) {
-        return undefined;
+    try {
+      const userDecoded = jwt.decode(token, process.env.JWT_SECRET);
+      if (userDecoded != {}) {
+        const result = await this.findById(userDecoded.id);
+        return result;
       }
+    } catch (error) {
+      return undefined;
     }
+  }
 
   async updateAvatar(id, url) {
     try {
@@ -214,12 +217,12 @@ class User {
     }
   }
 
-  async update(data){
-    try{
-      const result = await UserModel.findByIdAndUpdate(data.id, data)
-      return result
+  async update(data) {
+    try {
+      const result = await UserModel.findByIdAndUpdate(data.id, data);
+      return result;
     } catch (error) {
-      throw new Error("Error in update data User" + error)
+      throw new Error("Error in update data User" + error);
     }
   }
 }

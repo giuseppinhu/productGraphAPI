@@ -50,7 +50,7 @@ class SalesController {
   async getSales(req, res) {
     try {
       const { page, search, status } = req.query;
-      const { companie_id } = req.body;
+      const companie_id = req.companie_id;
 
       if (page === undefined || isNaN(page)) {
         return res

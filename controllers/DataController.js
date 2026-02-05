@@ -5,11 +5,13 @@ const Product = require("../models/Product");
 class DataController {
   async dataDashboard(req, res) {
     try {
-      const users = await User.getNewUsers();
-      const sales = await Sales.dataSales();
+      const companie_id = req.companie_id;
+
+      const users = await User.getNewUsers(companie_id);
+      const sales = await Sales.dataSales(companie_id);
 
       const getDataProduct = async () => {
-        const rawMoreSales = await Sales.getProductMoreSale();
+        const rawMoreSales = await Sales.getProductMoreSale(companie_id);
         const newMoreSales = await Promise.all(
           rawMoreSales.map(async (i) => {
             const product = await Product.findById(i._id);
@@ -33,7 +35,7 @@ class DataController {
       };
 
       const getDataSaleLast = async () => {
-        const rawSales = await Sales.getLatest();
+        const rawSales = await Sales.getLatest(companie_id);
 
         const newSales = await Promise.all(
           rawSales.map(async (i) => {
@@ -60,7 +62,7 @@ class DataController {
       const productSales = await getDataProduct();
       const salesLast = await getDataSaleLast();
 
-      const graphData = await Sales.getProductMonth();
+      const graphData = await Sales.getProductMonth(companie_id);
 
       if (
         productSales.message === "Product not found!" ||
@@ -89,7 +91,8 @@ class DataController {
 
   async dataSales(req, res) {
     try {
-      const { page, search, status } = req.query
+      const { page, search, status } = req.query;
+      const companie_id = req.companie_id;
 
       if (page === undefined || isNaN(page)) {
         return res
@@ -98,17 +101,19 @@ class DataController {
       }
 
       const { sales, total, totalPages, next } = await Sales.getAll(
+        companie_id,
         page,
         5,
         search,
         status,
       );
 
-      const newUsers = await User.getNewUsers();
+      const newUsers = await User.getNewUsers(companie_id);
 
-      const budges = await Sales.getSalesWeek();
+      const budges = await Sales.getSalesWeek(companie_id);
 
-      const AUR = budges.quantity / newUsers.currentCount || 0;
+      const AUR =
+        newUsers.currentCount > 0 ? budges.quantity / newUsers.currentCount : 0;
 
       res.status(200).json({ sales, total, totalPages, next, budges, AUR });
     } catch (error) {
@@ -118,10 +123,10 @@ class DataController {
 
   async dataUser(req, res) {
     try {
-      const { companie_id } = req.body;
+      const companie_id = req.companie_id;
       const { page, search } = req.query;
 
-      const users = await User.getNewUsers();
+      const users = await User.getNewUsers(companie_id);
       const dataUsers = await User.getAll(companie_id, page, 5, search);
 
       res.status(200).json({ totalNew: users.currentCount, dataUsers });
@@ -132,12 +137,21 @@ class DataController {
 
   async dataProduct(req, res) {
     try {
-      const { companie_id } = req.body
+      const companie_id = req.companie_id;
       const { page, search } = req.query;
 
-      const product = await Product.dataProducts(companie_id, page, 5, search.trim())
+      const product = await Product.dataProducts(
+        companie_id,
+        page,
+        5,
+        search.trim(),
+      );
 
-      res.json({ product: product.products, totalDoc: product.totalDocs })
+      res.json({
+        product: product.products,
+        totalDoc: product.totalDocs,
+        companieId: companie_id,
+      });
     } catch (error) {
       res.status(400).json({ error: "Error retriving data products" });
     }

@@ -6,18 +6,18 @@ const salesSchema = new mongoose.Schema({
     ref: "Product",
     required: true,
   },
-  quantity: { 
-    type: Number, 
-    required: true 
+  quantity: {
+    type: Number,
+    required: true,
   },
   companieId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Companie",
     required: true,
   },
-  totalPrice: { 
-    type: mongoose.Schema.Types.Decimal128, 
-    required: true 
+  totalPrice: {
+    type: mongoose.Schema.Types.Decimal128,
+    required: true,
   },
   saleDate: {
     type: Date,
