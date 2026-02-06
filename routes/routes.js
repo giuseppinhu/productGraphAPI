@@ -67,4 +67,18 @@ router.post("/companie", CompanieController.createCompanie);
 
 router.post("/id/companie", CompanieController.findById);
 
+// ROTA VALIDATE
+
+router.get('/validate', UserLogged, (req, res) => {
+
+  console.log(req.id)
+  
+  if(!req.id) {
+    res.status(400).json({ sucess: false })
+  }
+  
+  res.json({ sucess: true })
+})
+
+
 module.exports = router;

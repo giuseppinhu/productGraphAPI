@@ -165,18 +165,6 @@ class User {
     }
   }
 
-  async findByToken(token) {
-    try {
-      const userDecoded = jwt.decode(token, process.env.JWT_SECRET);
-      if (userDecoded != {}) {
-        const result = await this.findById(userDecoded.id);
-        return result;
-      }
-    } catch (error) {
-      return undefined;
-    }
-  }
-
   async updateAvatar(id, url) {
     try {
       const result = await this.findById(id);
