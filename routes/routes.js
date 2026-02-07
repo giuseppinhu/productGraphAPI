@@ -41,7 +41,7 @@ router.post("/users", AdminAuth, UserController.getAllUsers);
 
 router.post("/user", AdminAuth, UserController.createUser);
 
-router.post("/id/user", AdminAuth, UserController.getUserById);
+router.post("/id/user", UserLogged, UserController.getUserById);
 
 router.delete("/user/:id", AdminAuth, UserController.deleteUser);
 
@@ -54,13 +54,13 @@ router.put("/update", AdminAuth, UserController.update);
 router.post("/user/upload", dynamicUpload, UserController.uploadAvatar);
 
 // ROTA DA DADOS PARA A DASH
-router.post("/data/dashboard", AdminAuth, DataController.dataDashboard);
+router.post("/data/dashboard", UserLogged, DataController.dataDashboard);
 
-router.post("/data/sales", AdminAuth, DataController.dataSales);
+router.post("/data/sales", UserLogged, DataController.dataSales);
 
-router.post("/data/users", AdminAuth, DataController.dataUser);
+router.post("/data/users", UserLogged, DataController.dataUser);
 
-router.post("/data/product", AdminAuth, DataController.dataProduct);
+router.post("/data/product", UserLogged, DataController.dataProduct);
 
 // ROTA DE EMPRESAS
 router.post("/companie", CompanieController.createCompanie);
@@ -68,15 +68,10 @@ router.post("/companie", CompanieController.createCompanie);
 router.post("/id/companie", CompanieController.findById);
 
 // ROTA VALIDATE
-
 router.get('/validate', UserLogged, (req, res) => {
-
-  console.log(req.id)
-  
   if(!req.id) {
     res.status(400).json({ sucess: false })
   }
-  
   res.json({ sucess: true })
 })
 

@@ -3,9 +3,9 @@ const ProductSchema = require("../database/ProductSchema");
 const ProductModel = mongoose.model("Product", ProductSchema);
 
 class Product {
-  async findAll() {
+  async findAll(companieId) {
     try {
-      const products = await ProductModel.find();
+      const products = await ProductModel.find({companieId});
       return products;
     } catch (error) {
       throw new Error("Error retrieving products: " + error.message);

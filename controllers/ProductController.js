@@ -69,8 +69,8 @@ class ProductController {
 
   async findAllProducts(req, res) {
     try {
-      const { id } = req.body;
-      const products = await Product.findAll(id);
+      const companie_id = req.companie_id;
+      const products = await Product.findAll(companie_id);
       res.status(200).json({ products });
     } catch (error) {
       res.status(500).json({ message: "Error retrieving products", error });

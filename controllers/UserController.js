@@ -10,7 +10,8 @@ class UserConstroller {
   async createUser(req, res) {
     try {
       const data = req.body;
-
+      data.companie_id = req.companie_id
+    
       // Input validation
       if (data.name === undefined || data.name === null || data.name === " ") {
         res.status(400).json({ error: "Name is required" });
@@ -176,7 +177,7 @@ class UserConstroller {
 
             res.cookie("token", token, {
               httpOnly: true,
-              secure: false,
+              secure: true,
               sameSite: "lax",
               maxAge: 24 * 60 * 60 * 1000,
             });

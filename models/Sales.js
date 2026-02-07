@@ -85,7 +85,7 @@ class Sales {
       };
 
       if (status) {
-        matchCondition.$and.push({ status: status });
+        matchCondition.status = status;
       }
 
       const sales = await SalesModel.aggregate([
